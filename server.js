@@ -6,7 +6,7 @@ const app = express();
 
 // Configuración básica de CORS
 app.use(cors({
-  origin: 'http://localhost:5173', // Reemplaza con tu URL de frontend
+  origin: 'https://verificador-web.netlify.app/', // Reemplaza con tu URL de frontend
   methods: ['GET']
 }));
 
