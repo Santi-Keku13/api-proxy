@@ -4,62 +4,77 @@ const cors = require('cors');
 
 const app = express();
 
-// Configuración básica de CORS
+// CORS configurado correctamente
 app.use(cors({
-  origin: 'https://verificador-web.netlify.app/', // Reemplaza con tu URL de frontend
+  origin: 'https://verificador-web.netlify.app',
   methods: ['GET']
 }));
 
-// Ruta del proxy para buscar productos
+// Ruta de verificación de salud
+app.get('/', (req, res) => {
+  res.json({
+    status: "API operativa",
+    endpoints: {
+      buscarProductos: "/api/productos?codigo=XXX"
+    }
+  });
+});
+
+// Proxy mejorado
 app.get('/api/productos', async (req, res) => {
   try {
     const { codigo } = req.query;
     
     if (!codigo) {
-      return res.status(400).json({ error: 'Código de barras es requerido' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Parámetro "codigo" es requerido' 
+      });
     }
 
-    // Normalizar el código (eliminar espacios)
     const codigoNormalizado = codigo.trim();
-    
-    // Hacer la petición a la API
     const response = await axios.get('https://api.internapps.net/api/precios');
-    const todosProductos = response.data;
     
-    // Buscar coincidencia exacta
+    const todosProductos = Array.isArray(response.data) ? response.data : [];
     const productoEncontrado = todosProductos.find(p => 
-      p.scanner.trim() === codigoNormalizado
+      p.scanner && p.scanner.trim() === codigoNormalizado
     );
     
     if (productoEncontrado) {
       res.json({
         success: true,
         producto: {
-          articulo: productoEncontrado.articulo.trim(),
-          precio: productoEncontrado.precio,
-          precioMayorista: productoEncontrado.precioMayorista,
-          scanner: productoEncontrado.scanner.trim()
+          articulo: productoEncontrado.articulo?.trim() || 'Sin nombre',
+          precio: productoEncontrado.precio || 0,
+          precioMayorista: productoEncontrado.precioMayorista || 0,
+          scanner: productoEncontrado.scanner?.trim() || ''
         }
       });
     } else {
       res.status(404).json({
         success: false,
         message: 'Producto no encontrado',
-        codigoBuscado: codigoNormalizado
+        codigoBuscado: codigoNormalizado,
+        sugerencia: 'Verifica el código o intenta con otro'
       });
     }
   } catch (error) {
-    console.error('Error en el proxy:', error);
+    console.error('Error completo:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
     res.status(500).json({
       success: false,
-      message: 'Error al buscar el producto',
-      error: error.message
+      message: 'Error al consultar la API externa',
+      details: error.message
     });
   }
 });
 
-// Puerto de configuración
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Servidor proxy corriendo en http://localhost:${PORT}`);
+  console.log(`\n✅ Servidor proxy activo en http://localhost:${PORT}`);
+  console.log(`🔍 Endpoint: /api/productos?codigo=XXXX\n`);
 });
