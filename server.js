@@ -6,8 +6,9 @@ const app = express();
 
 // CORS configurado correctamente
 app.use(cors({
-  origin: 'https://verificador-web.netlify.app',
-  methods: ['GET']
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Ruta de verificación de salud
@@ -74,7 +75,7 @@ app.get('/api/productos', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n✅ Servidor proxy activo en http://localhost:${PORT}`);
   console.log(`🔍 Endpoint: /api/productos?codigo=XXXX\n`);
 });
