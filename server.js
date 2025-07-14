@@ -47,6 +47,8 @@ app.get('/api/productos', async (req, res) => {
           articulo: productoEncontrado.articulo?.trim() || 'Sin nombre',
           precio: productoEncontrado.precio || 0,
           precioMayorista: productoEncontrado.precioMayorista || 0,
+          precioMayorista14: productoEncontrado.precioMayorista14 || 0,
+          precioMayorista7: productoEncontrado.precioMayorista7 || 0,
           scanner: productoEncontrado.scanner?.trim() || ''
         }
       });
